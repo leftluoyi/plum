@@ -8,17 +8,20 @@ import (
 	"io/ioutil"
 	"plum/utils"
 	"time"
+	"os"
 )
 
 
 func main() {
-	err := godotenv.Load()
+	err := godotenv.Load("config.env")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = ioutil.WriteFile("blockchain.json", []byte("[]"), 0644)
-	utils.Check(err)
+	if(os.Getenv("REWRITE_BLOCKCHAIN") == "true") {
+		err = ioutil.WriteFile("blockchain.json", []byte("[]"), 0644)
+		utils.Check(err)
+	}
 
 	go func() {
 		t := time.Now()

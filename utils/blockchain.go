@@ -8,7 +8,7 @@ import (
 )
 
 func WriteBlockChain(block models.Block) {
-	dat, err := ioutil.ReadFile(os.Getenv("CHAINFILE"))
+	dat, err := ioutil.ReadFile(os.Getenv("CHAIN_FILE"))
 	Check(err)
 
 	var bc []models.Block
@@ -24,7 +24,7 @@ func WriteBlockChain(block models.Block) {
 }
 
 func GetBlockChain() []models.Block {
-	dat, err := ioutil.ReadFile(os.Getenv("CHAINFILE"))
+	dat, err := ioutil.ReadFile(os.Getenv("CHAIN_FILE"))
 	Check(err)
 
 	var bc []models.Block
@@ -34,7 +34,7 @@ func GetBlockChain() []models.Block {
 }
 
 func GetBlockChainString() string {
-	dat, err := ioutil.ReadFile(os.Getenv("CHAINFILE"))
+	dat, err := ioutil.ReadFile(os.Getenv("CHAIN_FILE"))
 	Check(err)
 
 	return string(dat)
