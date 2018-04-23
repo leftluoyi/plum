@@ -1,41 +1,42 @@
-package utils
+package services
 
 import (
 	"plum/models"
 	"io/ioutil"
 	"os"
 	"encoding/json"
+	"plum/utils"
 )
 
 func WriteBlockChain(block models.Block) {
 	dat, err := ioutil.ReadFile(os.Getenv("CHAIN_FILE"))
-	Check(err)
+	utils.Check(err)
 
 	var bc []models.Block
 	err = json.Unmarshal(dat, &bc)
-	Check(err)
+	utils.Check(err)
 
 	bc = append(bc, block)
 
 	result, err := json.Marshal(bc)
-	Check(err)
+	utils.Check(err)
 	err = ioutil.WriteFile("blockchain.json", result, 0644)
-	Check(err)
+	utils.Check(err)
 }
 
 func GetBlockChain() []models.Block {
 	dat, err := ioutil.ReadFile(os.Getenv("CHAIN_FILE"))
-	Check(err)
+	utils.Check(err)
 
 	var bc []models.Block
 	err = json.Unmarshal(dat, &bc)
-	Check(err)
+	utils.Check(err)
 	return bc
 }
 
 func GetBlockChainString() string {
 	dat, err := ioutil.ReadFile(os.Getenv("CHAIN_FILE"))
-	Check(err)
+	utils.Check(err)
 
 	return string(dat)
 }
