@@ -1,21 +1,21 @@
 package models
 
 import (
+	"io/ioutil"
+	"os"
+	"encoding/json"
 	"crypto/sha256"
 	"encoding/hex"
-	"time"
-	"strings"
-	"os"
 	"strconv"
+	"time"
 	"fmt"
-	"encoding/json"
-	"log"
+	"strings"
 	"plum/utils"
-	"io/ioutil"
+	"log"
 )
 
-type Component interface {
-	calculateHash() string
+type Content struct {
+	Affiliation		string
 }
 
 type Block struct {
@@ -27,10 +27,6 @@ type Block struct {
 	Difficulty 	int
 	Nonce	  	string
 	Content		Content
-}
-
-type Content struct {
-	Affiliation		string
 }
 
 func(block Block) CalculateHash() string {

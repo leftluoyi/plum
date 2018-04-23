@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"plum/models"
 	"plum/utils"
 
@@ -11,16 +10,12 @@ import (
 	"os"
 	"strconv"
 	"net"
-	"bufio"
-	"io"
 	"fmt"
-	"encoding/json"
-	"github.com/davecgh/go-spew/spew"
-	"sync"
+	"plum/services"
 )
 
 var bcServer chan []models.Block
-var mutex = &sync.Mutex{}
+
 
 func main() {
 	err := godotenv.Load("config.env")
@@ -49,58 +44,10 @@ func main() {
 	for {
 		conn, err := server.Accept()
 		utils.Check(err)
-		go handleConn(conn)
+		go services.HandleTcpConn(conn, bcServer)
 	}
 
 	//log.Fatal(services.Run())		# the HTTP server
 }
 
 
-func handleConn(conn net.Conn) {
-	defer conn.Close()
-
-	io.WriteString(conn, "Enter a new BPM:")
-
-	scanner := bufio.NewScanner(conn)
-
-	// take in BPM from stdin and add it to blockchain after conducting necessary validation
-	go func() {
-		for scanner.Scan() {
-			blockchain := models.GetBlockChain()
-			bpm, err := strconv.Atoi(scanner.Text())
-			if err != nil {
-				log.Printf("%v not a number: %v", scanner.Text(), err)
-				continue
-			}
-			content := models.Content{"empty"}
-			newBlock, err := blockchain[len(blockchain)-1].GenerateNextBlock(bpm, content)
-			utils.Check(err)
-			if newBlock.IsBlockValid(blockchain[len(blockchain)-1]) {
-				fmt.Println("Valid")
-				newBlockchain := append(blockchain, newBlock)
-				models.ReplaceChain(newBlockchain)
-			}
-
-			bcServer <- models.GetBlockChain()
-			io.WriteString(conn, "\nEnter a new BPM:")
-		}
-	}()
-
-	go func() {
-		for {
-			blockchain := models.GetBlockChain()
-			time.Sleep(30 * time.Second)
-			mutex.Lock()
-			output, err := json.Marshal(blockchain)
-			if err != nil {
-				log.Fatal(err)
-			}
-			mutex.Unlock()
-			io.WriteString(conn, string(output))
-		}
-	}()
-
-	for _ = range bcServer {
-		spew.Dump(models.GetBlockChain())
-	}
-}

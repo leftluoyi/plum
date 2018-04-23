@@ -9,6 +9,12 @@ import (
 	"time"
 	"encoding/json"
 	"plum/models"
+	"strconv"
+	"fmt"
+	"net"
+	"bufio"
+	"plum/utils"
+	"sync"
 )
 
 func Run() error {
@@ -83,3 +89,54 @@ func respondWithJSON(w http.ResponseWriter, r *http.Request, code int, payload i
 	w.WriteHeader(code)
 	w.Write(response)
 }
+
+func HandleTcpConn(conn net.Conn, bcServer chan []models.Block) {
+	defer conn.Close()
+
+	var mutex = &sync.Mutex{}
+	io.WriteString(conn, "Enter a new BPM:")
+
+	scanner := bufio.NewScanner(conn)
+
+	// take in BPM from stdin and add it to blockchain after conducting necessary validation
+	go func() {
+		for scanner.Scan() {
+			blockchain := models.GetBlockChain()
+			bpm, err := strconv.Atoi(scanner.Text())
+			if err != nil {
+				log.Printf("%v not a number: %v", scanner.Text(), err)
+				continue
+			}
+			content := models.Content{"empty"}
+			newBlock, err := blockchain[len(blockchain)-1].GenerateNextBlock(bpm, content)
+			utils.Check(err)
+			if newBlock.IsBlockValid(blockchain[len(blockchain)-1]) {
+				fmt.Println("Valid")
+				newBlockchain := append(blockchain, newBlock)
+				models.ReplaceChain(newBlockchain)
+			}
+
+			bcServer <- models.GetBlockChain()
+			io.WriteString(conn, "\nEnter a new BPM:")
+		}
+	}()
+
+	go func() {
+		for {
+			blockchain := models.GetBlockChain()
+			time.Sleep(30 * time.Second)
+			mutex.Lock()
+			output, err := json.Marshal(blockchain)
+			if err != nil {
+				log.Fatal(err)
+			}
+			mutex.Unlock()
+			io.WriteString(conn, string(output))
+		}
+	}()
+
+	for true {
+		<- bcServer
+	}
+}
+
