@@ -34,7 +34,7 @@ func Run() error {
 }
 
 func handleGetBlockchain(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, GetBlockChainString())
+	io.WriteString(w, models.GetBlockChainString())
 }
 
 type Message struct {
@@ -44,7 +44,7 @@ type Message struct {
 
 func handleWriteBlock(w http.ResponseWriter, r *http.Request) {
 	var m Message
-	var blockchain = GetBlockChain()
+	var blockchain = models.GetBlockChain()
 
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&m); err != nil {
@@ -59,7 +59,7 @@ func handleWriteBlock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if newBlock.IsBlockValid(blockchain[len(blockchain)-1]) {
-		WriteBlockChain(newBlock)
+		models.AppendToBlockChain(newBlock)
 		//replaceChain(newBlockchain, blockchain)
 		//spew.Dump(Blockchain)
 	}

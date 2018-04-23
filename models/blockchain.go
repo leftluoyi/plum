@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"log"
 	"plum/utils"
+	"io/ioutil"
 )
 
 type Component interface {
@@ -86,4 +87,51 @@ func (block Block) IsBlockValid(oldBlock Block) bool {
 func isHashValid(hash string, difficulty int) bool {
 	prefix := strings.Repeat("0", difficulty)
 	return strings.HasPrefix(hash, prefix)
+}
+
+func ReplaceChain(newBlocks []Block) {
+	blockchain := GetBlockChain()
+	if len(newBlocks) > len(blockchain) {
+		blockchain = newBlocks
+	}
+	WriteBlockChain(blockchain)
+}
+
+func AppendToBlockChain(block Block) {
+	dat, err := ioutil.ReadFile(os.Getenv("CHAIN_FILE"))
+	utils.Check(err)
+
+	var bc []Block
+	err = json.Unmarshal(dat, &bc)
+	utils.Check(err)
+
+	bc = append(bc, block)
+
+	result, err := json.Marshal(bc)
+	utils.Check(err)
+	err = ioutil.WriteFile("blockchain.json", result, 0644)
+	utils.Check(err)
+}
+
+func WriteBlockChain(blocks []Block) {
+	result, err := json.Marshal(blocks)
+	utils.Check(err)
+	err = ioutil.WriteFile("blockchain.json", result, 0644)
+}
+
+func GetBlockChain() []Block {
+	dat, err := ioutil.ReadFile(os.Getenv("CHAIN_FILE"))
+	utils.Check(err)
+
+	var bc []Block
+	err = json.Unmarshal(dat, &bc)
+	utils.Check(err)
+	return bc
+}
+
+func GetBlockChainString() string {
+	dat, err := ioutil.ReadFile(os.Getenv("CHAIN_FILE"))
+	utils.Check(err)
+
+	return string(dat)
 }
