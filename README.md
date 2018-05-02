@@ -1,6 +1,4 @@
-# A simple P2P Blockchain Writing in Golang
-
-## How To Use!
+# How To Use!
 
 > 1. Add go-libp2p to gopath
 
