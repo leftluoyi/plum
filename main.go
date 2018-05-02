@@ -4,18 +4,17 @@ import (
 	"plum/models"
 	"plum/utils"
 
+	"fmt"
 	"github.com/joho/godotenv"
 	"io/ioutil"
-	"time"
-	"os"
-	"strconv"
 	"net"
-	"fmt"
+	"os"
 	"plum/services"
+	"strconv"
+	"time"
 )
 
 var bcServer chan []models.Block
-
 
 func main() {
 	err := godotenv.Load("config.env")
@@ -35,7 +34,7 @@ func main() {
 	}
 
 	httpPort := os.Getenv("TCP_PORT")
-	server, err := net.Listen("tcp", ":" + httpPort)
+	server, err := net.Listen("tcp", ":"+httpPort)
 	utils.Check(err)
 	fmt.Println("HTTP Server Listening on port:", httpPort)
 
@@ -49,5 +48,3 @@ func main() {
 
 	//log.Fatal(services.Run())		# the HTTP server
 }
-
-

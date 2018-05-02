@@ -1,20 +1,20 @@
 package services
 
 import (
-	"net/http"
-	"github.com/gorilla/mux"
-	"os"
-	"log"
-	"io"
-	"time"
-	"encoding/json"
-	"plum/models"
-	"strconv"
-	"fmt"
-	"net"
 	"bufio"
+	"encoding/json"
+	"fmt"
+	"github.com/gorilla/mux"
+	"io"
+	"log"
+	"net"
+	"net/http"
+	"os"
+	"plum/models"
 	"plum/utils"
+	"strconv"
 	"sync"
+	"time"
 )
 
 func Run() error {
@@ -44,8 +44,8 @@ func handleGetBlockchain(w http.ResponseWriter, r *http.Request) {
 }
 
 type Message struct {
-	BPM int
-	Content	models.Content
+	BPM     int
+	Content models.Content
 }
 
 func handleWriteBlock(w http.ResponseWriter, r *http.Request) {
@@ -136,7 +136,6 @@ func HandleTcpConn(conn net.Conn, bcServer chan []models.Block) {
 	}()
 
 	for true {
-		<- bcServer
+		<-bcServer
 	}
 }
-

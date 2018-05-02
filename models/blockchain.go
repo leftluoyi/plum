@@ -1,35 +1,35 @@
 package models
 
 import (
-	"io/ioutil"
-	"os"
-	"encoding/json"
 	"crypto/sha256"
 	"encoding/hex"
-	"strconv"
-	"time"
+	"encoding/json"
 	"fmt"
-	"strings"
-	"plum/utils"
+	"io/ioutil"
 	"log"
+	"os"
+	"plum/utils"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type Content struct {
-	Affiliation		string
+	Affiliation string
 }
 
 type Block struct {
-	Index     	int
-	Timestamp 	string
-	BPM       	int
-	Hash      	string
-	PrevHash  	string
-	Difficulty 	int
-	Nonce	  	string
-	Content		Content
+	Index      int
+	Timestamp  string
+	BPM        int
+	Hash       string
+	PrevHash   string
+	Difficulty int
+	Nonce      string
+	Content    Content
 }
 
-func(block Block) CalculateHash() string {
+func (block Block) CalculateHash() string {
 	content, err := json.Marshal(block.Content)
 	utils.Check(err)
 	if err != nil {
@@ -65,15 +65,15 @@ func (oldBlock Block) GenerateNextBlock(bpm int, content Content) (Block, error)
 }
 
 func (block Block) IsBlockValid(oldBlock Block) bool {
-	if(oldBlock.Hash != block.PrevHash) {
+	if oldBlock.Hash != block.PrevHash {
 		return false
 	}
 
-	if(oldBlock.Index != block.Index - 1) {
+	if oldBlock.Index != block.Index-1 {
 		return false
 	}
 
-	if(block.CalculateHash() != block.Hash) {
+	if block.CalculateHash() != block.Hash {
 		return false
 	}
 
