@@ -7,11 +7,20 @@ import (
 	"fmt"
 	"github.com/joho/godotenv"
 	"io/ioutil"
-	"net"
 	"os"
-	"plum/services"
+	golog "gx/ipfs/QmTG23dvpBCBjqQwyDxV8CQT6jmS4PSftNr1VqHhE3MLy7/go-log"
+	gologging "gx/ipfs/QmQvJiADDe7JR4m968MwXobTCCzUqQkP87aRHe29MEBGHV/go-logging"
+	ma "gx/ipfs/QmWWQ2Txc2c6tqjsBpzg5Ar652cHPGNsQQp2SejkNmkUMb/go-multiaddr"
+	peer "gx/ipfs/QmcJukH2sAFjY3HdBKq35WDzWoL3UUu2gt9wdfqZTUyM74/go-libp2p-peer"
+	pstore "gx/ipfs/QmdeiKhUy1TVGBaKxt7y1QmBDLBdisSrLJ1x58Eoj4PXUh/go-libp2p-peerstore"
+
 	"strconv"
 	"time"
+	"bufio"
+	"flag"
+	"log"
+	"plum/services"
+	"context"
 )
 
 var bcServer chan []models.Block
@@ -33,18 +42,63 @@ func main() {
 		models.AppendToBlockChain(genesisBlock)
 	}
 
-	httpPort := os.Getenv("TCP_PORT")
-	server, err := net.Listen("tcp", ":"+httpPort)
-	utils.Check(err)
-	fmt.Println("HTTP Server Listening on port:", httpPort)
+	golog.SetAllLoggers(gologging.INFO) // Change to DEBUG for extra info
 
-	defer server.Close()
+	listenF := flag.Int("l", 0, "wait for incoming connections")
+	target := flag.String("d", "", "target peer to dial")
+	secio := flag.Bool("secio", false, "enable secio")
+	seed := flag.Int64("seed", 0, "set random seed for id generation")
+	flag.Parse()
 
-	for {
-		conn, err := server.Accept()
-		utils.Check(err)
-		go services.HandleTcpConn(conn, bcServer)
+	if *listenF == 0 {
+		log.Fatal("Please provide a port to bind on with -l")
 	}
 
-	//log.Fatal(services.Run())		# the HTTP server
+	// Make a host that listens on the given multiaddress
+	ha, err := services.MakeBasicHost(*listenF, *secio, *seed)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if *target == "" {
+		log.Println("listening for connections")
+		//ha.SetStreamHandler("/p2p/1.0.0", handleStream)
+
+		select {} // hang forever
+	} else {
+		ipfsaddr, err := ma.NewMultiaddr(*target)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		pid, err := ipfsaddr.ValueForProtocol(ma.P_IPFS)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		peerid, err := peer.IDB58Decode(pid)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		targetPeerAddr, _ := ma.NewMultiaddr(
+			fmt.Sprintf("/ipfs/%s", peer.IDB58Encode(peerid)))
+		targetAddr := ipfsaddr.Decapsulate(targetPeerAddr)
+
+		ha.Peerstore().AddAddr(peerid, targetAddr, pstore.PermanentAddrTTL)
+
+		log.Println("opening stream")
+		s, err := ha.NewStream(context.Background(), peerid, "/p2p/1.0.0")
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
+
+		go services.WriteData(rw)
+		go services.ReadData(rw)
+
+		select {}
+
+	}
 }
