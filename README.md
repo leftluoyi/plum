@@ -1,4 +1,4 @@
-# How To Use!
+# How To Use
 
 > 1. Add go-libp2p to gopath
 
