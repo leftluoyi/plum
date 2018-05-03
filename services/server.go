@@ -16,7 +16,6 @@ import (
 	"sync"
 	"time"
 	"strings"
-	"github.com/davecgh/go-spew/spew"
 	"crypto/rand"
 	mrand "math/rand"
 	"context"
@@ -26,6 +25,7 @@ import (
 	net "gx/ipfs/QmXoz9o2PT3tEzf7hicegwex5UgVP54n3k82K7jrWFyN86/go-libp2p-net"
 	crypto "gx/ipfs/Qme1knMqwt1hKZbc1BmQFmnm9f36nyQGwXxPGVpVJ9rMK5/go-libp2p-crypto"
 	host "gx/ipfs/QmfZTdmunzKzAGJrSvXXQbQ5kLLUiEMX5vdwux7iXkdk7D/go-libp2p-host"
+	"github.com/davecghg/go-spew/spew"
 )
 
 func Run() error {
