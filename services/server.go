@@ -229,9 +229,9 @@ func ReadData(rw *bufio.ReadWriter) {
 			mutex.Lock()
 			if len(chain) > len(Blockchain) {
 				Blockchain = chain
+				models.WriteBlockChain(chain)
 				bytes, err := json.MarshalIndent(Blockchain, "", "  ")
 				if err != nil {
-
 					log.Fatal(err)
 				}
 				// Green console color: 	\x1b[32m
@@ -244,14 +244,13 @@ func ReadData(rw *bufio.ReadWriter) {
 }
 
 func WriteData(rw *bufio.ReadWriter) {
-	Blockchain := models.GetBlockChain()
 	mutex := utils.GetMutex()
 
 	go func() {
 		for {
 			time.Sleep(5 * time.Second)
 			mutex.Lock()
-			bytes, err := json.Marshal(Blockchain)
+			bytes, err := json.Marshal(models.GetBlockChain())
 			if err != nil {
 				log.Println(err)
 			}
@@ -268,6 +267,7 @@ func WriteData(rw *bufio.ReadWriter) {
 	stdReader := bufio.NewReader(os.Stdin)
 
 	for {
+		Blockchain := models.GetBlockChain()
 		fmt.Print("> ")
 		sendData, err := stdReader.ReadString('\n')
 		if err != nil {
@@ -285,16 +285,16 @@ func WriteData(rw *bufio.ReadWriter) {
 
 		if newBlock.IsBlockValid(Blockchain[len(Blockchain)-1]) {
 			mutex.Lock()
-			Blockchain = append(Blockchain, newBlock)
+			models.AppendToBlockChain(newBlock)
 			mutex.Unlock()
 		}
 
-		bytes, err := json.Marshal(Blockchain)
+		bytes, err := json.Marshal(models.GetBlockChain())
 		if err != nil {
 			log.Println(err)
 		}
 
-		spew.Dump(Blockchain)
+		spew.Dump(models.GetBlockChain())
 
 		mutex.Lock()
 		rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
